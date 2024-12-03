@@ -21,6 +21,9 @@
             'editor/category',
             'editor/sku',
         ];
+        $TactivePaths = [
+            'editor/inbound-request',
+        ];
         
     @endphp
     <!-- Nav Item - Dashboard -->
@@ -67,6 +70,25 @@
                 @endif
                 @if (Auth::user()->hasPermissionByName('Customer','read'))
                 <a class="collapse-item {{ Request::is('editor/customer') ? 'active' : '' }}" href="{{ route('editor.customer') }}">Customer</a>
+                @endif
+            </div>
+        </div>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <li class="nav-item {{ collect($TactivePaths)->contains(fn($path) => Request::is($path)) ? 'active' : '' }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsetransaction"
+            aria-expanded="true" aria-controls="collapsetransaction">
+            <i class="fas fa-database"></i>
+            <span>Transaksi</span>
+        </a>
+        <div id="collapsetransaction" class="collapse {{ collect($TactivePaths)->contains(fn($path) => Request::is($path)) ? 'show' : '' }}" aria-labelledby="headingtransaction"
+            data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                @if (Auth::user()->hasPermissionByName('Inbound Request','read'))
+                <a class="collapse-item {{ Request::is('editor/inbound-request') ? 'active' : '' }}" href="{{ route('editor.inbound-request') }}">Inbound Request</a>
                 @endif
             </div>
         </div>

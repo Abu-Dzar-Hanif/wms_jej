@@ -5,6 +5,7 @@ use App\Http\Controllers\auth\AuthController;
 use App\Http\Controllers\editor\CategoryController;
 use App\Http\Controllers\editor\CustomerController;
 use App\Http\Controllers\editor\DashboardController;
+use App\Http\Controllers\editor\InboundRequestController;
 use App\Http\Controllers\editor\MenuController;
 use App\Http\Controllers\editor\SkuDataController;
 use App\Http\Controllers\editor\SkuTypeController;
@@ -98,5 +99,10 @@ Route::prefix('editor')->middleware('auth')->group(function(){
         Route::get('/sku/detail','detailData')->name('editor.sku.detail');
         Route::delete('/sku/delete','deleteData')->name('editor.sku.delete');
         Route::get('/sku/generate/code','generateCode')->name('editor.sku.generate.code');
+    });
+    Route::controller(InboundRequestController::class)->group(function(){
+        Route::get('/inbound-request','index')->name('editor.inbound-request');
+        Route::get('/inbound-request/data','getData')->name('editor.inbound-request.data');
+        Route::post('/inbound-request/upload/stock','uploadDataStock')->name('editor.inbound-request.upload.stock');
     });
 });
