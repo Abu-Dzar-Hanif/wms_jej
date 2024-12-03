@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\auth\AuthController;
+use App\Http\Controllers\editor\CategoryController;
 use App\Http\Controllers\editor\CustomerController;
 use App\Http\Controllers\editor\DashboardController;
 use App\Http\Controllers\editor\MenuController;
@@ -78,5 +79,13 @@ Route::prefix('editor')->middleware('auth')->group(function(){
         Route::post('/customer/manage','StoreUpdateData')->name('editor.customer.manage');
         Route::get('/customer/detail','detailData')->name('editor.customer.detail');
         Route::delete('/customer/delete','deleteData')->name('editor.customer.delete');
+    });
+
+    Route::controller(CategoryController::class)->group(function(){
+        Route::get('/category','index')->name('editor.category');
+        Route::get('/category/data','getData')->name('editor.category.data');
+        Route::post('/category/manage','StoreUpdateData')->name('editor.category.manage');
+        Route::get('/category/detail','detailData')->name('editor.category.detail');
+        Route::delete('/category/delete','deleteData')->name('editor.category.delete');
     });
 });

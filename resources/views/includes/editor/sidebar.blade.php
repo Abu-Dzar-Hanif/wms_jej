@@ -18,6 +18,7 @@
             'editor/sku-type',
             'editor/warehouse',
             'editor/customer',
+            'editor/category'
         ];
         
     @endphp
@@ -47,6 +48,9 @@
                 @endif
                 @if (Auth::user()->hasPermissionByName('Uom','read'))
                 <a class="collapse-item {{ Request::is('editor/uom') ? 'active' : '' }}" href="{{ route('editor.uom') }}">Uom</a>
+                @endif
+                @if (Auth::user()->hasPermissionByName('Category','read'))
+                <a class="collapse-item {{ Request::is('editor/category') ? 'active' : '' }}" href="{{ route('editor.category') }}">Category</a>
                 @endif
                 @if (Auth::user()->hasPermissionByName('Sku Type','read'))
                 <a class="collapse-item {{ Request::is('editor/sku-type') ? 'active' : '' }}" href="{{ route('editor.sku-type') }}">SKU Type</a>
