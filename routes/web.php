@@ -6,6 +6,7 @@ use App\Http\Controllers\editor\CategoryController;
 use App\Http\Controllers\editor\CustomerController;
 use App\Http\Controllers\editor\DashboardController;
 use App\Http\Controllers\editor\MenuController;
+use App\Http\Controllers\editor\SkuDataController;
 use App\Http\Controllers\editor\SkuTypeController;
 use App\Http\Controllers\editor\UomController;
 use App\Http\Controllers\editor\UserController;
@@ -48,6 +49,7 @@ Route::prefix('editor')->middleware('auth')->group(function(){
     Route::controller(UomController::class)->group(function(){
         Route::get('/uom','index')->name('editor.uom');
         Route::get('/uom/data','getData')->name('editor.uom.data');
+        Route::get('/uom/data/select','getDataSelect')->name('editor.uom.data.select');
         Route::post('/uom/manage','StoreUpdateData')->name('editor.uom.manage');
         Route::get('/uom/detail','detailData')->name('editor.uom.detail');
         Route::delete('/uom/delete','deleteData')->name('editor.uom.delete');
@@ -55,6 +57,7 @@ Route::prefix('editor')->middleware('auth')->group(function(){
     Route::controller(SkuTypeController::class)->group(function(){
         Route::get('/sku-type','index')->name('editor.sku-type');
         Route::get('/sku-type/data','getData')->name('editor.sku-type.data');
+        Route::get('/sku-type/data/select','getDataSelect')->name('editor.sku-type.data.select');
         Route::post('/sku-type/manage','StoreUpdateData')->name('editor.sku-type.manage');
         Route::get('/sku-type/detail','detailData')->name('editor.sku-type.detail');
         Route::delete('/sku-type/delete','deleteData')->name('editor.sku-type.delete');
@@ -80,12 +83,20 @@ Route::prefix('editor')->middleware('auth')->group(function(){
         Route::get('/customer/detail','detailData')->name('editor.customer.detail');
         Route::delete('/customer/delete','deleteData')->name('editor.customer.delete');
     });
-
     Route::controller(CategoryController::class)->group(function(){
         Route::get('/category','index')->name('editor.category');
         Route::get('/category/data','getData')->name('editor.category.data');
+        Route::get('/category/data/select','getDataSelect')->name('editor.category.data.select');
         Route::post('/category/manage','StoreUpdateData')->name('editor.category.manage');
         Route::get('/category/detail','detailData')->name('editor.category.detail');
         Route::delete('/category/delete','deleteData')->name('editor.category.delete');
+    });
+    Route::controller(SkuDataController::class)->group(function(){
+        Route::get('/sku','index')->name('editor.sku');
+        Route::get('/sku/data','getData')->name('editor.sku.data');
+        Route::post('/sku/manage','StoreUpdateData')->name('editor.sku.manage');
+        Route::get('/sku/detail','detailData')->name('editor.sku.detail');
+        Route::delete('/sku/delete','deleteData')->name('editor.sku.delete');
+        Route::get('/sku/generate/code','generateCode')->name('editor.sku.generate.code');
     });
 });

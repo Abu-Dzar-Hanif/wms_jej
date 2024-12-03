@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\editor;
 
-use App\Models\Category;
+use App\Models\SkuData;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -11,11 +11,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-class CategoryController extends Controller
+class SkuDataController extends Controller
 {
     public function index():View
     {
-        return view('pages.editor.category.index');
+        return view('pages.editor.sku_data.index');
     }
 
     public function getData(Request $request):JsonResponse
@@ -25,15 +25,23 @@ class CategoryController extends Controller
         $start = $request->input('start', 0);
         $limit = $request->input('limit', 10);
         try {
-            $query = Category::where('name', 'LIKE', '%'.$cari.'%');
-            $category_total = $query->count();
-            $category = $query->offset($start)
+            $query = SkuData::select('sku_data.*','uom.name as uom_name'
+            ,'sku_type.name as type_sku','category.name as category_sku')
+            ->leftjoin('uom','sku_data.uom_id','uom.id')
+            ->leftjoin('sku_type','sku_data.sku_type_id','sku_type.id')
+            ->leftjoin('category','sku_data.category_id','category.id')
+            ->where(function($q)use($cari){
+                $q->where('sku_data.sku_name', 'LIKE', '%'.$cari.'%')
+                ->orWhere('sku_data.sku_code', 'LIKE', '%'.$cari.'%');
+            });
+            $sku_data_total = $query->count();
+            $sku_data = $query->offset($start)
                 ->limit($limit)
                 ->get();
             $data['draw'] = intval($request->input('draw'));
-            $data['recordsTotal'] = $category_total;
-            $data['recordsFiltered'] = $category_total;
-            $data['data'] = $category;
+            $data['recordsTotal'] = $sku_data_total;
+            $data['recordsFiltered'] = $sku_data_total;
+            $data['data'] = $sku_data;
             $data['success']=1;
             
         } catch (\Throwable $th) {
@@ -52,15 +60,29 @@ class CategoryController extends Controller
         if (!$request->filled('id')) {
             $request->merge(['id' => null]);
         }
+        if (!$request->filled('ket')) {
+            $request->merge(['ket' => null]);
+        }
         try {
             $rules = [
                 'id' => 'nullable|integer',
-                'name' => 'required|string|max:255|unique:category,name,'. $request->id,
+                'sku_code' => 'required|string|max:255|unique:sku_data,sku_code,'. $request->id,
+                'sku_name' => 'required|string|max:255',
+                'uom' => 'required|integer|min:1',
+                'type' => 'required|integer|min:1',
+                'category' => 'required|integer|min:1',
+                'ket' => 'nullable|string|max:255',
+                'weight' => 'required|numeric',
+                'height' => 'required|numeric',
+                'length' => 'required|numeric',
+                'width' => 'required|numeric',
             ];
             $massages = [
                 'required' => ':attribute wajib diisi',
-                'name.unique' => 'category sudah ada',
+                'sku_code.unique' => 'kode sku sudah ada',
                 'string' => ':attribute harus bertipe string',
+                'integer' => ':attribute harus bertipe angka',
+                'number' => ':attribute harus bertipe angka',
                 'max' => ':attribute tidak boleh lebih dari :max',
             ];
             $data = $request->all();
@@ -73,11 +95,20 @@ class CategoryController extends Controller
                 $validData = $validator->validate();
                 $validData['created_by'] = $user_id;
                 $data = [
-                    'name' => $validData['name'],
+                    'sku_code' => $validData['sku_code'],
+                    'sku_name' => $validData['sku_name'],
+                    'uom_id' => $validData['uom'],
+                    'sku_type_id' => $validData['type'],
+                    'category_id' => $validData['category'],
+                    'ket' => $validData['ket'],
+                    'weight' => $validData['weight'],
+                    'height' => $validData['height'],
+                    'length' => $validData['length'],
+                    'width' => $validData['width'],
                     'created_by' => $user_id,
                     'updated_by' => $user_id,
                 ];
-                Category::updateOrCreate(['id' => $validData['id']],$data);
+                SkuData::updateOrCreate(['id' => $validData['id']],$data);
                 $res = ['success' => 1, 'messages' => 'Success'];
             }
         } catch (\Throwable $th) {
@@ -93,7 +124,12 @@ class CategoryController extends Controller
         $res = [];
         try {
             $id = $request->input('id', 0);
-            $data = Category::find($id);
+            $data = SkuData::select('sku_data.*','uom.name as uom_name'
+            ,'sku_type.name as type_sku','category.name as category_sku')
+            ->leftjoin('uom','sku_data.uom_id','uom.id')
+            ->leftjoin('sku_type','sku_data.sku_type_id','sku_type.id')
+            ->leftjoin('category','sku_data.category_id','category.id')
+            ->find($id);
             if ($data) {
                 $res = ['success' => 1, 'data' => $data];
             } else {
@@ -113,9 +149,9 @@ class CategoryController extends Controller
         $res=[];
         try {
             $id = $request->input('id', 0);
-            $query = Category::where('id',$id);
-            $category = $query->first();
-            if ($category) {
+            $query = SkuData::where('id',$id);
+            $sku = $query->first();
+            if ($sku) {
                 $query->update(['deleted_by'=>$user_id]);
                 $query->delete();
                 $res = ['success' => 1, 'messages'=>'success delete'];
@@ -129,17 +165,12 @@ class CategoryController extends Controller
         return response()->json($res, $rescode);
     }
 
-    public function getDataSelect(Request $request):JsonResponse
+    public function generateCode():JsonResponse
     {
-        $param = $request->input('cari', '');
-        $query = Category::select('id', 'name')->where('name', 'LIKE', '%'.$param.'%');
-        $data = $query->get();
-        $data = $data->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'text' => $item->name,
-            ];
-        });
-        return response()->json($data, 200);
+        $sku_code = SkuData::max('sku_code');
+        $urutan = (int)substr($sku_code,-1);
+        $urutan++;
+        $code = sprintf("%06s",$urutan);
+        return response()->json(['success'=>1,'code'=>$code]);
     }
 }
