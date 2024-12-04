@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class UserWhAccess extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $table = "user_access";
+    protected $table = "user_wh_access";
     protected $guarded = ["id"];
 
     public function Warehouse()

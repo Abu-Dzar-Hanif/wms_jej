@@ -189,10 +189,75 @@
         </div>
     </div>
 </form>
+<div class="modal fade" id="accessWhModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Warehouse Access User</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formAddWhAccess" method="post">
+                    @csrf
+                    <div class="form-group row">
+                        <div class="form-group col-10">
+                            <input type="hidden" name="id" id="user_id_accesswh">
+                            <label for="">Warehouse</label>
+                            <select name="wh" id="wh_access" class="getWh form-control"></select>
+                        </div>
+                        <div class="form-group col-2 mt-4">
+                            @if (Auth::user()->hasPermissionByName('Warehouse Access','create'))
+                            <button class="btn btn-outline-primary mt-2" type="button" id="btnAddWh">Add</button>
+                            @endif
+                        </div>
+                    </div>
+                </form>
+                <div class="form-group">
+                    @if (Auth::user()->hasPermissionByName('Warehouse Access','delete'))
+                    <button class="btn btn-danger btn-sm my-2" type="button" id="btndelWhAcs">Delete</button>
+                    @endif
+                    <table id="Tawhu" class="table table-bordered">
+                        <thead>
+                            <th width="5"><input type="checkbox" id="checkAll"></th>
+                            <th>Warehouse</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 @section('script')
 <script>
     $('document').ready(function(e){
+        $(".getWh").select2({
+            placeholder: 'Warehouse',
+            allowClear: true,
+            width:'100%',
+            ajax: { 
+                url: "{{ URL::route('editor.warehouse.data.select') }}",
+                type: "get",
+                dataType: 'json',
+                data: function (params) {
+                    return {
+                        cari: params.term,
+                    }
+                },
+                processResults: function (response) {
+                    return {
+                    results: response
+                    };
+                },
+                cache: false,
+            },
+        });
         var Tuser = $('#Tuser').DataTable({
             "responsive": true,
             'searching': false,
@@ -222,6 +287,9 @@
                             }
                             if("{{ Auth::user()->hasPermissionByName('User Access','read') }}"){
                                 btn += '<button type="button" class="btn btn-success btnAccess">Access</button>';
+                            }
+                            if("{{ Auth::user()->hasPermissionByName('Warehouse Access','read') }}"){
+                                btn += '<button type="button" class="btn btn-info btnWhAccess">WH Access</button>';
                             }
                             if("{{ Auth::user()->hasPermissionByName('User','delete') }}"){
                                 btn += '<button type="button" class="btn btn-danger btnDelete">Delete</button>';
@@ -424,6 +492,59 @@
             })
             $("#accessModal").modal("show");
         });
+        $("#Tuser tbody").on('click','.btnWhAccess',function(){
+            let data = Tuser.row( $(this).parents('tr') ).data();
+            let idData = data.id;
+            $.ajax({
+                url:"{{ URL::route('editor.access-wh.data') }}",
+                type: "GET",
+                data: {
+                    "_token": "{{ csrf_token() }}",
+                    'id': idData
+                },
+                dataType: "JSON",
+                cache: false,
+                beforeSend: function(){
+                    $('.loading-clock').css('display','flex');
+                },
+                success: function(data) {
+                    if(data.success == 1){
+                        let res = data.data;
+                        let access = res.access;
+                        $("#user_id_accesswh").val(res.user);
+                        let tbody = $("#Tawhu tbody");
+                        tbody.empty(); // Kosongkan isi tabel sebelum mengisi ulang
+                        if(access.length > 0){
+                            // Looping data untuk mengisi tabel
+                            access.forEach(item => {
+                                let row = `
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" name="id_acs_wh[]" value="${item.id}" class="checkItem">
+                                        </td>
+                                        <td>${item.wh_name}</td>
+                                    </tr>
+                                `;
+                                tbody.append(row); // Tambahkan baris ke tabel
+                            });
+                        }else{
+                            let row = `
+                                <tr>
+                                    <td colspan="2" class="text-center">Tidak ada Access</td>
+                                </tr>
+                            `;
+                            tbody.append(row);
+                        }
+                    } else{
+                        toastr_error(data.messages);
+                    }
+                },
+                complete: function(){
+                    $('.loading-clock').css('display','none');
+                },
+            })
+            $("#accessWhModal").modal("show");
+        });
         $("#proses_access").click(function(){
             var postData = new FormData($("#accessForm")[0]);
             // Loop melalui semua checkbox untuk memastikan checkbox yang tidak dicentang juga mengirimkan nilai 0
@@ -476,6 +597,99 @@
             const type = passwordField.attr('type') === 'password' ? 'text' : 'password';
             passwordField.attr('type', type);
             $(this).toggleClass('fa-eye fa-eye-slash');
+        });
+        $('#btnAddWh').on('click',function(){
+            let postData = new FormData($("#formAddWhAccess")[0]);
+            $.ajax({
+                url:"{{ URL::route('editor.access-wh.store') }}",
+                data:postData,
+                type:"POST",
+                dataType:"JSON",
+                cache:false,
+                contentType: false,
+                processData: false,
+                beforeSend: function(){
+                    $('.loading-clock').css('display','flex');
+                },
+                success:function(data){
+                    if(data.success == 1){
+                        $('#wh_access').val(null).trigger('change');
+                        $("#accessWhModal").modal("hide");
+                        toastr_success(data.messages);
+                        redraw();
+                    }else{
+                        toastr_error(data.messages);
+                    }
+                },
+                complete: function(){
+                    $('.loading-clock').css('display','none');
+                },
+            });
+        });
+        let checkedIds = [];
+        $('#checkAll').click(function() {
+            $('.checkItem').prop('checked', $(this).prop('checked'));
+            checkedIds = [];
+            $('.checkItem:checked').each(function() {
+                var id = $(this).val();
+                checkedIds.push(id);
+            });
+        });
+        $(document).on('change', '.checkItem', function() {
+            var id = $(this).val();
+            if ($(this).prop('checked')) {
+                // Jika checkbox dicentang, tambahkan ID ke dalam array
+                checkedIds.push(id);
+            } else {
+                // Jika checkbox tidak dicentang, hapus ID dari array
+                var index = checkedIds.indexOf(id);
+                if (index !== -1) {
+                    checkedIds.splice(index, 1);
+                }
+            }
+        });
+        $("#btndelWhAcs").on('click',function(){
+            if(checkedIds.length>0){
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "You won't be able to revert this!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, delete it!"
+                    }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url:"{{ URL::route('editor.access-wh.delete') }}",
+                            type: "DELETE",
+                            data: {
+                                "_token": "{{ csrf_token() }}",
+                                'id': checkedIds
+                            },
+                            dataType: "JSON",
+                            cache: false,
+                            beforeSend: function(){
+                                $('.loading-clock').css('display','flex');
+                            },
+                            success: function(data) {
+                                if(data.success == 1){
+                                    toastr_success(data.messages);
+                                    $("#accessWhModal").modal("hide");
+                                    redraw();
+                                } else{
+                                    toastr_error(data.messages);
+                                }
+                            },
+                            complete: function(){
+                                $('.loading-clock').css('display','none');
+                            },
+                        }); 
+                    }
+                });
+            }else{
+                toastr_error('pilih data dulu');
+            }
         });
     });
 </script>

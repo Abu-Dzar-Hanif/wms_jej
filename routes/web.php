@@ -12,6 +12,7 @@ use App\Http\Controllers\editor\SkuTypeController;
 use App\Http\Controllers\editor\UomController;
 use App\Http\Controllers\editor\UserController;
 use App\Http\Controllers\editor\UserAccessController;
+use App\Http\Controllers\editor\UserWhAccessController;
 use App\Http\Controllers\editor\VendorController;
 use App\Http\Controllers\editor\WarehouseController;
 
@@ -66,6 +67,7 @@ Route::prefix('editor')->middleware('auth')->group(function(){
     Route::controller(WarehouseController::class)->group(function(){
         Route::get('/warehouse','index')->name('editor.warehouse');
         Route::get('/warehouse/data','getData')->name('editor.warehouse.data');
+        Route::get('/warehouse/data/select','getDataSelect')->name('editor.warehouse.data.select');
         Route::post('/warehouse/manage','StoreUpdateData')->name('editor.warehouse.manage');
         Route::get('/warehouse/detail','detailData')->name('editor.warehouse.detail');
         Route::delete('/warehouse/delete','deleteData')->name('editor.warehouse.delete');
@@ -104,5 +106,10 @@ Route::prefix('editor')->middleware('auth')->group(function(){
         Route::get('/inbound-request','index')->name('editor.inbound-request');
         Route::get('/inbound-request/data','getData')->name('editor.inbound-request.data');
         Route::post('/inbound-request/upload/stock','uploadDataStock')->name('editor.inbound-request.upload.stock');
+    });
+    Route::controller(UserWhAccessController::class)->group(function(){
+        Route::get('/access-wh/data','getData')->name('editor.access-wh.data');
+        Route::post('/access-wh/store','StoreData')->name('editor.access-wh.store');
+        Route::delete('/access-wh/delete','deleteData')->name('editor.access-wh.delete');
     });
 });
