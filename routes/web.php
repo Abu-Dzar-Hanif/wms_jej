@@ -111,5 +111,6 @@ Route::prefix('editor')->middleware('auth')->group(function(){
         Route::get('/access-wh/data','getData')->name('editor.access-wh.data');
         Route::post('/access-wh/store','StoreData')->name('editor.access-wh.store');
         Route::delete('/access-wh/delete','deleteData')->name('editor.access-wh.delete');
+        Route::get('/access-wh/data/select','getDataSelect')->name('editor.access-wh.data.select');
     });
 });

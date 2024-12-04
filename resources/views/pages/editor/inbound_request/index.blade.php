@@ -1,6 +1,6 @@
 @extends('layouts.editor')
 @section('title')
-   Uom
+   Inbound Request
 @endsection
 
 @section('content')
@@ -8,13 +8,13 @@
 
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Uom</h1>
+        <h1 class="h3 mb-0 text-gray-800">Inbound Request</h1>
         <form action="" id="form_cari" method="post">
             @csrf
             <div class="input-group">
                 <input type="text" class="form-control" placeholder="Cari nama" name="cari" id="cari">
                 <div class="input-group-append">
-                    @if (Auth::user()->hasPermissionByName('Uom','create'))
+                    @if (Auth::user()->hasPermissionByName('Inbound Request','create'))
                     <button type="button" id="add_new" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">Add</button>
                     <button type="button" id="upload_stock" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm">Upload</button>
                     @endif
@@ -26,14 +26,14 @@
     <!-- DataTales Example -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Uom</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Data Inbound Request</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered" id="Tuom" width="100%" cellspacing="0">
+                <table class="table table-bordered" id="TinboundR" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>Uom</th>
+                            <th>Inbound Request</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -49,15 +49,15 @@
         <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Uom</h5>
+                    <h5 class="modal-title">Inbound Request</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="">Nama Uom</label>
-                        <input type="text" id="name" name="name" class="form-control" placeholder="Nama Uom">
+                        <label for="">Nama Inbound Request</label>
+                        <input type="text" id="name" name="name" class="form-control" placeholder="Nama Inbound Request">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -74,7 +74,7 @@
         <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Update Uom</h5>
+                    <h5 class="modal-title">Update Inbound Request</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -82,7 +82,7 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <input type="hidden" id="id_update" name="id" class="form-control">
-                        <label for="">Nama Uom</label>
+                        <label for="">Nama Inbound Request</label>
                         <input type="text" id="name_update" name="name" class="form-control">
                     </div>
                 </div>
@@ -96,7 +96,7 @@
 </form>
 <form id="uploadStockForm" method="post" enctype="multipart/form-data">
     @csrf
-    <div class="modal fade" id="uploadStockModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="uploadStockModal" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -136,7 +136,29 @@
 @section('script')
 <script>
     $('document').ready(function(e){
-        var Tuom = $('#Tuom').DataTable({
+        $(".getWh").select2({
+            placeholder: 'Warehouse',
+            allowClear: true,
+            width:'100%',
+            ajax: { 
+                url: "{{ URL::route('editor.access-wh.data.select') }}",
+                type: "get",
+                dataType: 'json',
+                data: function (params) {
+                    return {
+                        cari: params.term,
+                        user : "{{ Auth::user()->id }}"
+                    }
+                },
+                processResults: function (response) {
+                    return {
+                    results: response
+                    };
+                },
+                cache: false,
+            },
+        });
+        var TinboundR = $('#TinboundR').DataTable({
             "responsive": true,
             'searching': false,
             "processing": true,
@@ -144,7 +166,7 @@
             "pagingType": "full_numbers",
             "paging":true,
             "ajax":{
-                "url":"{{ route('editor.uom.data') }}",
+                "url":"{{ route('editor.inbound-request.data') }}",
                 "data":function(parm){
                     parm.search = function(){
                         return $('#cari').val();
@@ -153,15 +175,15 @@
                    
             },
             "columns":[
-                {"data": "name","orderable":false},
+                {"data": "vendor_name","orderable":false},
                 {
                     "data": "id","orderable":false,render: function ( data, type, row ){
                         var idData = row.id;
                         let btn ='<div class="btn-group" role="group" aria-label="Basic example">';
-                            if("{{ Auth::user()->hasPermissionByName('Uom','update') }}"){
+                            if("{{ Auth::user()->hasPermissionByName('Inbound Request','update') }}"){
                                 btn += '<button type="button" class="btn btn-warning btnUpdate">Update</button>';
                             }
-                            if ("{{ Auth::user()->hasPermissionByName('Uom','delete') }}") {
+                            if ("{{ Auth::user()->hasPermissionByName('Inbound Request','delete') }}") {
                                 btn += '<button type="button" class="btn btn-danger btnDelete">Delete</button>';
                             }
                         btn += '</div>';
@@ -171,7 +193,7 @@
             ]
         });
         function redraw(){
-            Tuom.draw();
+            TinboundR.draw();
         }
         $("#add_new").click(function(){
             $("#addModal").modal("show");
@@ -179,7 +201,7 @@
         $("#proses_add").click(function(){
             var postData = new FormData($("#addForm")[0]);
             $.ajax({
-                url:"{{ URL::route('editor.uom.manage') }}",
+                
                 data:postData,
                 type:"POST",
                 dataType:"JSON",
@@ -206,11 +228,11 @@
                 },
             });
         });
-        $("#Tuom tbody").on('click','.btnUpdate',function(){
-            let data = Tuom.row( $(this).parents('tr') ).data();
+        $("#TinboundR tbody").on('click','.btnUpdate',function(){
+            let data = TinboundR.row( $(this).parents('tr') ).data();
             let idData = data.id;
             $.ajax({
-                url:"{{ URL::route('editor.uom.detail') }}",
+                
                 type: "GET",
                 data: {
                     "_token": "{{ csrf_token() }}",
@@ -240,7 +262,7 @@
         $("#proses_update").click(function(){
             var postData = new FormData($("#updateForm")[0]);
             $.ajax({
-                url:"{{ URL::route('editor.uom.manage') }}",
+                
                 data:postData,
                 type:"POST",
                 dataType:"JSON",
@@ -264,8 +286,8 @@
                 },
             });
         });
-        $("#Tuom tbody").on('click','.btnDelete',function(){
-            let data = Tuom.row( $(this).parents('tr') ).data();
+        $("#TinboundR tbody").on('click','.btnDelete',function(){
+            let data = TinboundR.row( $(this).parents('tr') ).data();
             let idData = data.id;
             Swal.fire({
                 title: "Are you sure?",
@@ -278,7 +300,7 @@
                 }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url:"{{ URL::route('editor.uom.delete') }}",
+                    
                         type: "DELETE",
                         data: {
                             "_token": "{{ csrf_token() }}",
@@ -306,7 +328,54 @@
         });
         $("#btn-cari").click(function(){
             let search = $("#cari").val();
-            Tuom.draw();
+            TinboundR.draw();
+        });
+        $("#upload_stock").click(function(){
+            $("#uploadStockModal").modal("show");
+        });
+        $("#uploadStockForm").on("submit", function(e) {
+            e.preventDefault();
+            extension = $('#file_stock').val().split('.').pop().toLowerCase();
+            if ($.inArray(extension, ['xls', 'xlsx']) == -1) {
+                toastr.error("error");
+            } else {
+                let gudang_id = $("#wh_id_upload").val();
+                let ket = $("#ket").val();
+                if(gudang_id != null){
+                    var file_data = $('#file_stock').prop('files')[0];
+                    var form_data = new FormData();
+                    form_data.append('file', file_data);
+                    form_data.append("_token", "{{ csrf_token() }}");
+                    form_data.append("warehouse",gudang_id);
+                    form_data.append("ket",ket);
+                    $.ajax({
+                        url: "{{ URL::route('editor.inbound-request.upload.stock') }}",
+                        data: form_data,
+                        type: "post",
+                        dataType: "json",
+                        contentType: false,
+                        cache: false,
+                        processData: false,
+                        beforeSend: function(){
+                            $('.loading-clock').css('display','flex');
+                        },
+                        success: function(data) {
+                            if(data.success == 1){
+                                toastr_success(data.messages);
+                                $("#uploadStockModal").modal("hide");
+                            }else{
+                                toastr_error(data.messages);
+                            }
+                            redraw();
+                        },
+                        complete: function(){
+                            $('.loading-clock').css('display','none');
+                        },
+                    });
+                }else{
+                    toastr_error("pilih gudang dulu");
+                }
+            }
         });
     });
 </script>

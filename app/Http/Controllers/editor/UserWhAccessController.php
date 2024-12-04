@@ -76,8 +76,13 @@ class UserWhAccessController extends Controller
                 $validData = $validator->validate();
                 $id = $validData['id'];
                 $wh = $validData['wh'];
-                UserWhAccess::create(['user_id'=>$id,'warehouse_id'=>$wh,'created_by'=>$user]);
-                $res =['success'=>1,'messages'=>'Success'];
+                $cek = UserWhAccess::where('user_id',$id)->where('warehouse_id',$wh)->count();
+                if($cek >0){
+                    $res =['success'=>0,'messages'=>'Access Sudah ada'];
+                }else{
+                    UserWhAccess::create(['user_id'=>$id,'warehouse_id'=>$wh,'created_by'=>$user]);
+                    $res =['success'=>1,'messages'=>'Success'];
+                } 
             }
         } catch (\Throwable $th) {
             Log::error("error ".$th);
@@ -107,5 +112,23 @@ class UserWhAccessController extends Controller
             $res =['success'=>0,'messages'=>'terjadi kesalahan'];
         }
         return response()->json($res, $rescode);
+    }
+
+    public function getDataSelect(Request $request):JsonResponse
+    {
+        $user = $request->input('user', 0);
+        $param = $request->input('cari', '');
+        $query = UserWhAccess::select('warehouse.id', 'warehouse.name')
+        ->leftjoin('warehouse','user_wh_access.warehouse_id','warehouse.id')
+        ->where('user_wh_access.user_id',$user)
+        ->where('warehouse.name', 'LIKE', '%'.$param.'%');
+        $data = $query->get();
+        $data = $data->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'text' => $item->name,
+            ];
+        });
+        return response()->json($data, 200);
     }
 }
