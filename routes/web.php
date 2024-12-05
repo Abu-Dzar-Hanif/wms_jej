@@ -78,6 +78,7 @@ Route::prefix('editor')->middleware('auth')->group(function(){
         Route::post('/vendor/manage','StoreUpdateData')->name('editor.vendor.manage');
         Route::get('/vendor/detail','detailData')->name('editor.vendor.detail');
         Route::delete('/vendor/delete','deleteData')->name('editor.vendor.delete');
+        Route::get('/vendor/data/select','getDataSelect')->name('editor.vendor.data.select');
     });
     Route::controller(CustomerController::class)->group(function(){
         Route::get('/customer','index')->name('editor.customer');
@@ -101,11 +102,13 @@ Route::prefix('editor')->middleware('auth')->group(function(){
         Route::get('/sku/detail','detailData')->name('editor.sku.detail');
         Route::delete('/sku/delete','deleteData')->name('editor.sku.delete');
         Route::get('/sku/generate/code','generateCode')->name('editor.sku.generate.code');
+        Route::get('/sku/data/select','getDataSelect')->name('editor.sku.data.select');
     });
     Route::controller(InboundRequestController::class)->group(function(){
         Route::get('/inbound-request','index')->name('editor.inbound-request');
         Route::get('/inbound-request/data','getData')->name('editor.inbound-request.data');
         Route::post('/inbound-request/upload/stock','uploadDataStock')->name('editor.inbound-request.upload.stock');
+        Route::post('/inbound-request/store','storeData')->name('editor.inbound-request.store');
     });
     Route::controller(UserWhAccessController::class)->group(function(){
         Route::get('/access-wh/data','getData')->name('editor.access-wh.data');

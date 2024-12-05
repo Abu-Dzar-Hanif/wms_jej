@@ -173,4 +173,18 @@ class SkuDataController extends Controller
         $code = sprintf("%06s",$urutan);
         return response()->json(['success'=>1,'code'=>$code]);
     }
+
+    public function getDataSelect(Request $request):JsonResponse
+    {
+        $param = $request->input('cari', '');
+        $query = SkuData::select('id', 'sku_name')->where('sku_name', 'LIKE', '%'.$param.'%');
+        $data = $query->get();
+        $data = $data->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'text' => $item->sku_name,
+            ];
+        });
+        return response()->json($data, 200);
+    }
 }

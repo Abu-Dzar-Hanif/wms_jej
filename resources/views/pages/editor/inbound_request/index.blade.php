@@ -14,11 +14,11 @@
             <div class="input-group">
                 <input type="text" class="form-control" placeholder="Cari nama" name="cari" id="cari">
                 <div class="input-group-append">
+                    <button class="d-none d-sm-inline-block btn btn-sm btn-info shadow-sm" type="button" id="btn-cari">Cari</button>
                     @if (Auth::user()->hasPermissionByName('Inbound Request','create'))
                     <button type="button" id="add_new" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">Add</button>
                     <button type="button" id="upload_stock" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm">Upload</button>
                     @endif
-                  <button class="d-none d-sm-inline-block btn btn-sm btn-info shadow-sm" type="button" id="btn-cari">Cari</button>
                 </div>
               </div>
         </form>
@@ -29,11 +29,27 @@
             <h6 class="m-0 font-weight-bold text-primary">Data Inbound Request</h6>
         </div>
         <div class="card-body">
+            <nav>
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <button class="nav-link active" id="nav-open-tab" data-toggle="tab" data-target="#nav-open" type="button" role="tab" aria-controls="nav-open" aria-selected="true">open</button>
+                    <button class="nav-link" id="nav-need-putaway-tab" data-toggle="tab" data-target="#nav-need-putaway" type="button" role="tab" aria-controls="nav-need-putaway" aria-selected="false">need-putaway</button>
+                    <button class="nav-link" id="nav-done-tab" data-toggle="tab" data-target="#nav-done" type="button" role="tab" aria-controls="nav-done" aria-selected="false">done</button>
+                </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
+                <div class="tab-pane fade show active" id="nav-open" role="tabpanel" aria-labelledby="nav-open-tab">...</div>
+                <div class="tab-pane fade" id="nav-need-putaway" role="tabpanel" aria-labelledby="nav-need-putaway-tab">...</div>
+                <div class="tab-pane fade" id="nav-done" role="tabpanel" aria-labelledby="nav-done-tab">...</div>
+            </div>
             <div class="table-responsive">
                 <table class="table table-bordered" id="TinboundR" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>Inbound Request</th>
+                            <th>Vendor</th>
+                            <th>Type</th>
+                            <th>Remark</th>
+                            <th>Date</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -45,7 +61,7 @@
 </div>
 <form id="addForm" method="post" enctype="multipart/form-data">
     @csrf
-    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="addModal" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -55,10 +71,55 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="">Nama Inbound Request</label>
-                        <input type="text" id="name" name="name" class="form-control" placeholder="Nama Inbound Request">
+                    <div class="form-group row">
+                        <div class="form-group col">
+                            <label for="">Warehouse</label>
+                            <select name="warehouse" id="warehouse" class="getWh form-control select2"></select>
+                        </div>
+                        <div class="form-group col">
+                            <label for="">Vendor</label>
+                            <select name="vendor" id="vendor" class="getVendor form-control select2"></select>
+                        </div>
                     </div>
+                    <div class="form-group row">
+                        <div class="form-group col">
+                            <label for="">Date</label>
+                            <input type="date" name="date" id="date" class="form-control">
+                        </div>
+                        <div class="form-group col">
+                            <label for="">Do/SJ Number</label>
+                            <input type="text" name="do_number" id="do_number" class="form-control">
+                        </div>
+                        <div class="form-group col">
+                            <label for="">PO Number</label>
+                            <input type="text" name="po_number" id="po_number" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="form-group col">
+                            <label for="">SKU</label>
+                            <select id="sku" class="getSku form-control"></select>
+                        </div>
+                        <div class="form-group col">
+                            <label for="">Qty</label>
+                            <div class="input-group">
+                                <input type="number" id="qty" class="form-control">
+                                <div class="input-group-append">
+                                    <button class="btn btn-info" type="button" id="addSku">Add</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <table class="table table-bordered" id="Tindtl">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>QTY</th>
+                                <th>#</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
@@ -158,6 +219,48 @@
                 cache: false,
             },
         });
+        $(".getVendor").select2({
+            placeholder: 'Vendor',
+            allowClear: true,
+            width:'100%',
+            ajax: { 
+                url: "{{ URL::route('editor.vendor.data.select') }}",
+                type: "get",
+                dataType: 'json',
+                data: function (params) {
+                    return {
+                        cari: params.term,
+                    }
+                },
+                processResults: function (response) {
+                    return {
+                    results: response
+                    };
+                },
+                cache: false,
+            },
+        });
+        $(".getSku").select2({
+            placeholder: 'SKU',
+            allowClear: true,
+            width:'100%',
+            ajax: { 
+                url: "{{ URL::route('editor.sku.data.select') }}",
+                type: "get",
+                dataType: 'json',
+                data: function (params) {
+                    return {
+                        cari: params.term,
+                    }
+                },
+                processResults: function (response) {
+                    return {
+                    results: response
+                    };
+                },
+                cache: false,
+            },
+        });
         var TinboundR = $('#TinboundR').DataTable({
             "responsive": true,
             'searching': false,
@@ -176,6 +279,27 @@
             },
             "columns":[
                 {"data": "vendor_name","orderable":false},
+                {"data": "inbound_request_type","orderable":false},
+                {"data": "remarks","orderable":false},
+                {"data": "date","orderable":false},
+                {"data": "status","orderable":false,render:function(data){
+                    let textSts ="";
+                    switch (data) {
+                        case 0:
+                        textSts = `<span class="badge badge-primary">Open</span>`;
+                            break;
+                        case 1:
+                        textSts = `<span class="badge badge-warning">Need Putaway</span>`;
+                            break;
+                        case 2:
+                        textSts = `<span class="badge badge-success">Done</span>`;
+                            break;
+                        default:
+                            break;
+                    }
+                    return textSts;
+                    }
+                },
                 {
                     "data": "id","orderable":false,render: function ( data, type, row ){
                         var idData = row.id;
@@ -201,7 +325,7 @@
         $("#proses_add").click(function(){
             var postData = new FormData($("#addForm")[0]);
             $.ajax({
-                
+                url:"{{ URL::route('editor.inbound-request.store') }}",
                 data:postData,
                 type:"POST",
                 dataType:"JSON",
@@ -376,6 +500,32 @@
                     toastr_error("pilih gudang dulu");
                 }
             }
+        });
+        $("#addSku").on('click',function(e){
+            e.preventDefault();
+            let sku_id = $("#sku").val();
+            let sku_name = $("#sku option:selected").text();
+            let qty = $("#qty").val();
+            if(sku_id>0&&qty>0){
+                if($("#Tindtl tbody #row"+sku_id).length){
+                    toastr_error("Data sudah ada");
+                }else{
+                    $("#sku").val(null).trigger('change');
+                    $("#qty").val(null);
+                    $("#Tindtl tbody").append(`
+                    <tr>
+                    <td><input type="hidden" name="sku_id[]" value="${sku_id}">${sku_name}</td>
+                    <td><input type="number" class="form-control" name="qty[]" value="${qty}"></td>
+                    <td><button class="btn btn-danger remove" type="button"><i class="fas fa-minus-square"></i></button></td>
+                    </tr>
+                    `);
+                }
+            }else{
+                toastr_error("masukan data");
+            }
+        });
+        $("#Tindtl").on('click','.remove',function(){
+            $(this).parent().parent().remove();
         });
     });
 </script>

@@ -194,4 +194,66 @@ class InboundRequestController extends Controller
             return response()->json($res);
         }
     }
+
+    public function storeData(Request $request):JsonResponse
+    {
+        $user_id =Auth::user()->id;
+        $rescode = 200;
+        $res = [];
+        try {
+            $rules = [
+                'warehouse' => 'required|integer|min:1',
+                'vendor' => 'required|integer|min:1',
+                'date' => 'required|date',
+                'do_number' => 'required|string|max:255',
+                'po_number' => 'required|string|max:255',
+                'sku_id' => 'required|array|min:1',
+                'qty' => 'required|array|min:1',
+                'sku_id.*' => 'required|integer|min:1',
+                'qty.*' => 'required|integer|min:1',
+            ];
+            $massages = [
+                'required' => ':attribute wajib diisi',
+                'string' => ':attribute harus bertipe string',
+                'max' => ':attribute tidak boleh lebih dari :max',
+                'integer' => ':attribute harus bertipe angka',
+                'date' => ':attribute tidak valid',
+                'array' => ':attribute tidak valid',
+                'sku_id.*.integer' => 'sku tidak valid',
+                'qty.*.integer' => 'qty tidak valid',
+            ];
+            $data = $request->all();
+            $validator = Validator::make($data, $rules, $massages);
+            if ($validator->fails()){
+                $v_error = $validator->errors()->all();
+                // Jika validasi gagal, kembalikan pesan kesalahan
+                $res = ['success' => 0, 'messages' => implode(' , ', $v_error)];
+            }else{
+                $validData = $validator->validate();
+                $inbound = InboundRequest::create([
+                    'vendor_id'=>$validData['vendor'],
+                    'no_sj'=>$validData['do_number'],
+                    'po_number'=>$validData['po_number'],
+                    'date'=>$validData['date'],
+                    'warehouse_id'=>$validData['warehouse'],
+                    'created_by'=>$user_id,
+                ]);
+                $idIn = $inbound->id;
+                foreach ($validData['sku_id'] as $key => $sku) {
+                    InboundRequestDtl::create([
+                        'inbound_request_id' =>$idIn,
+                        'sku_id' =>$sku,
+                        'qty' =>$validData['qty'][$key],
+                        'qty_awal' =>$validData['qty'][$key],
+                        'created_by'=>$user_id,
+                    ]);
+                }
+                $res = ['success' => 1, 'messages' => 'Success'];
+            }
+        } catch (\Throwable $th) {
+            Log::error("error ".$th);
+            $res =['success'=>0,'messages'=>'terjadi kesalahan'];
+        }
+        return response()->json($res,$rescode);
+    }
 }

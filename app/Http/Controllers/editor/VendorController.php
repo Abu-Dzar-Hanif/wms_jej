@@ -134,4 +134,18 @@ class VendorController extends Controller
         }
         return response()->json($res, $rescode);
     }
+
+    public function getDataSelect(Request $request):JsonResponse
+    {
+        $param = $request->input('cari', '');
+        $query = Vendor::select('id', 'name')->where('name', 'LIKE', '%'.$param.'%');
+        $data = $query->get();
+        $data = $data->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'text' => $item->name,
+            ];
+        });
+        return response()->json($data, 200);
+    }
 }
