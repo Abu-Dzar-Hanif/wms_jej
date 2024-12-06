@@ -31,30 +31,63 @@
         <div class="card-body">
             <nav>
                 <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                    <button class="nav-link active" id="nav-open-tab" data-toggle="tab" data-target="#nav-open" type="button" role="tab" aria-controls="nav-open" aria-selected="true">open</button>
-                    <button class="nav-link" id="nav-need-putaway-tab" data-toggle="tab" data-target="#nav-need-putaway" type="button" role="tab" aria-controls="nav-need-putaway" aria-selected="false">need-putaway</button>
-                    <button class="nav-link" id="nav-done-tab" data-toggle="tab" data-target="#nav-done" type="button" role="tab" aria-controls="nav-done" aria-selected="false">done</button>
+                    <button class="nav-link active" id="nav-open-tab" data-toggle="tab" data-target="#nav-open" type="button" role="tab" aria-controls="nav-open" aria-selected="true">Open <span class="badge badge-primary" id="c0">0</span></button>
+                    <button class="nav-link" id="nav-need-putaway-tab" data-toggle="tab" data-target="#nav-need-putaway" type="button" role="tab" aria-controls="nav-need-putaway" aria-selected="false">Putaway <span class="badge badge-warning" id="c1">0</span></button>
+                    <button class="nav-link" id="nav-done-tab" data-toggle="tab" data-target="#nav-done" type="button" role="tab" aria-controls="nav-done" aria-selected="false">Done <span class="badge badge-success" id="c2">0</span></button>
                 </div>
             </nav>
             <div class="tab-content" id="nav-tabContent">
-                <div class="tab-pane fade show active" id="nav-open" role="tabpanel" aria-labelledby="nav-open-tab">...</div>
-                <div class="tab-pane fade" id="nav-need-putaway" role="tabpanel" aria-labelledby="nav-need-putaway-tab">...</div>
-                <div class="tab-pane fade" id="nav-done" role="tabpanel" aria-labelledby="nav-done-tab">...</div>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-bordered" id="TinboundR" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>Vendor</th>
-                            <th>Type</th>
-                            <th>Remark</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="tab-pane fade show active" id="nav-open" role="tabpanel" aria-labelledby="nav-open-tab">
+                    <div class="table-responsive my-2">
+                        <table class="table table-bordered" id="TinboundR0" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th>Type</th>
+                                    <th>Remark</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-need-putaway" role="tabpanel" aria-labelledby="nav-need-putaway-tab">
+                    <div class="table-responsive my-2">
+                        <table class="table table-bordered" id="TinboundR1" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th>Type</th>
+                                    <th>Remark</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-done" role="tabpanel" aria-labelledby="nav-done-tab">
+                    <div class="table-responsive my-2">
+                        <table class="table table-bordered" id="TinboundR2" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th>Type</th>
+                                    <th>Remark</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -261,63 +294,94 @@
                 cache: false,
             },
         });
-        var TinboundR = $('#TinboundR').DataTable({
-            "responsive": true,
-            'searching': false,
-            "processing": true,
-            "serverSide": true,
-            "pagingType": "full_numbers",
-            "paging":true,
-            "ajax":{
-                "url":"{{ route('editor.inbound-request.data') }}",
-                "data":function(parm){
-                    parm.search = function(){
-                        return $('#cari').val();
-                    }
+        for(let i=0;i<3;i++){
+            let TinboundRi = initTable(i,'TinboundR'+i);
+            TabCount(i,'c'+i);
+        }
+
+        function initTable(status,tableId) {
+            return $('#'+tableId).DataTable({
+                "responsive": true,
+                'searching': false,
+                "processing": true,
+                "serverSide": true,
+                "pagingType": "full_numbers",
+                "paging":true,
+                "ajax":{
+                    "url":"{{ route('editor.inbound-request.data') }}",
+                    "data":function(parm){
+                        parm.search = function(){
+                            return $('#cari').val();
+                        };
+                        parm.status = function(){
+                            return status
+                        };
+                    },
+                    
                 },
-                   
-            },
-            "columns":[
-                {"data": "vendor_name","orderable":false},
-                {"data": "inbound_request_type","orderable":false},
-                {"data": "remarks","orderable":false},
-                {"data": "date","orderable":false},
-                {"data": "status","orderable":false,render:function(data){
-                    let textSts ="";
-                    switch (data) {
-                        case 0:
-                        textSts = `<span class="badge badge-primary">Open</span>`;
-                            break;
-                        case 1:
-                        textSts = `<span class="badge badge-warning">Need Putaway</span>`;
-                            break;
-                        case 2:
-                        textSts = `<span class="badge badge-success">Done</span>`;
-                            break;
-                        default:
-                            break;
-                    }
-                    return textSts;
-                    }
+                "columns":[
+                    {"data": "vendor_name","orderable":false},
+                    {"data": "inbound_request_type","orderable":false},
+                    {"data": "remarks","orderable":false},
+                    {"data": "date","orderable":false},
+                    {"data": "status","orderable":false,render:function(data){
+                        let textSts ="";
+                        switch (data) {
+                            case 0:
+                            textSts = `<span class="badge badge-primary">Open</span>`;
+                                break;
+                            case 1:
+                            textSts = `<span class="badge badge-warning">Putaway</span>`;
+                                break;
+                            case 2:
+                            textSts = `<span class="badge badge-success">Done</span>`;
+                                break;
+                            default:
+                                break;
+                        }
+                        return textSts;
+                        }
+                    },
+                    {
+                        "data": "id","orderable":false,render: function ( data, type, row ){
+                            var idData = row.id;
+                            let status = row.status;
+                            let btn ='<div class="btn-group" role="group" aria-label="Basic example">';
+                                if(status == 0){
+                                    if("{{ Auth::user()->hasPermissionByName('Inbound Request','update') }}"){
+                                        btn += '<button type="button" class="btn btn-warning btnUpdate">Update</button>';
+                                    }
+                                    if ("{{ Auth::user()->hasPermissionByName('Inbound Request','delete') }}") {
+                                        btn += '<button type="button" class="btn btn-danger btnDelete">Delete</button>';
+                                    }
+                                }
+                            btn += '</div>';
+                            return btn;
+                        }
+                    },
+                ]
+            });
+        };
+        function TabCount(status,spanId){
+            $.ajax({
+                url: "{{ URL::route('editor.inbound-request.data.total') }}",
+                methode:"GET",
+                data:{
+                    status:status,
+                    search:$("#cari").val()
                 },
-                {
-                    "data": "id","orderable":false,render: function ( data, type, row ){
-                        var idData = row.id;
-                        let btn ='<div class="btn-group" role="group" aria-label="Basic example">';
-                            if("{{ Auth::user()->hasPermissionByName('Inbound Request','update') }}"){
-                                btn += '<button type="button" class="btn btn-warning btnUpdate">Update</button>';
-                            }
-                            if ("{{ Auth::user()->hasPermissionByName('Inbound Request','delete') }}") {
-                                btn += '<button type="button" class="btn btn-danger btnDelete">Delete</button>';
-                            }
-                        btn += '</div>';
-                        return btn;
+                success:function(res){
+                    if(res.success ==1){
+                        $("#"+spanId).text(res.total);
                     }
-                },
-            ]
-        });
+                }
+            });
+        };
         function redraw(){
-            TinboundR.draw();
+            let search = $("#cari").val();
+            TinboundR0.draw();
+            TinboundR1.draw();
+            TinboundR2.draw();
         }
         $("#add_new").click(function(){
             $("#addModal").modal("show");
@@ -451,8 +515,7 @@
             });
         });
         $("#btn-cari").click(function(){
-            let search = $("#cari").val();
-            TinboundR.draw();
+            redraw();
         });
         $("#upload_stock").click(function(){
             $("#uploadStockModal").modal("show");

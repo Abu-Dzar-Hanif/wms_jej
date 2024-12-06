@@ -107,6 +107,7 @@ Route::prefix('editor')->middleware('auth')->group(function(){
     Route::controller(InboundRequestController::class)->group(function(){
         Route::get('/inbound-request','index')->name('editor.inbound-request');
         Route::get('/inbound-request/data','getData')->name('editor.inbound-request.data');
+        Route::get('/inbound-request/data/total','countData')->name('editor.inbound-request.data.total');
         Route::post('/inbound-request/upload/stock','uploadDataStock')->name('editor.inbound-request.upload.stock');
         Route::post('/inbound-request/store','storeData')->name('editor.inbound-request.store');
     });

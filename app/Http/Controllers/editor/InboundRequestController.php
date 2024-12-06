@@ -28,16 +28,18 @@ class InboundRequestController extends Controller
     {
         $rescode = 200;
         $cari = $request->input('search', '');
+        $status = $request->input('status', 0);
         $start = $request->input('start', 0);
         $limit = $request->input('limit', 10);
         try {
             $query = InboundRequest::select('inbound_request.*','vendor.name as vendor_name')
             ->leftjoin('vendor','inbound_request.vendor_id','vendor.id')
+            ->where('inbound_request.status',$status)
             ->where(function($q)use($cari){
                 $q->where('inbound_request.po_number', 'LIKE', '%'.$cari.'%')
                 ->orWhereNull('inbound_request.po_number')
                 ->orWhere('vendor.name', 'LIKE', '%'.$cari.'%');
-            });
+            });  
             $in_total = $query->count();
             $in = $query->offset($start)
                 ->limit($limit)
@@ -54,6 +56,31 @@ class InboundRequestController extends Controller
             $data =['success'=>0,'messages'=>'terjadi kesalahan'];
         }
         return response()->json($data,$rescode);
+    }
+
+    public function countData(Request $request):JsonResponse
+    {
+        $total=0;
+        $cari = $request->input('search', '');
+        $status = $request->input('status', 0);
+        try {
+            $query = InboundRequest::select('inbound_request.*','vendor.name as vendor_name')
+            ->leftjoin('vendor','inbound_request.vendor_id','vendor.id')
+            ->where('inbound_request.status',$status)
+            ->where(function($q)use($cari){
+                $q->where('inbound_request.po_number', 'LIKE', '%'.$cari.'%')
+                ->orWhereNull('inbound_request.po_number')
+                ->orWhere('vendor.name', 'LIKE', '%'.$cari.'%');
+            });  
+            $total = $query->count();
+            $data =['success'=>1,'total'=>$total];
+        } catch (\Throwable $th) {
+            $rescode=200;
+            Log::error("error ".$th);
+            $data =['success'=>0,'total'=>$total,'messages'=>'terjadi kesalahan'];
+        }
+
+        return response()->json($data);
     }
 
     public function uploadDataStock(Request $request):JsonResponse
