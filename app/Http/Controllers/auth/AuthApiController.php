@@ -36,7 +36,8 @@ class AuthApiController extends Controller
                     $token_name = 'MobileAppToken';
                     $token = $user->createToken($token_name);
                     $text_token = $token->plainTextToken;
-                    $data = ['token_type' => 'Bearer', 'token' => $text_token];
+                    $getuser = User::with(['useraccess:user_id,menu_id,create,read,update,delete','useraccess.menu:id,name'])->find($user->id);
+                    $data = ['token_type' => 'Bearer', 'token' => $text_token,'user'=>$getuser];
                     $res = ['success' => 1, 'message' => 'login berhasil', 'data' => $data];
                 } else {
                     $rescode = 400;
