@@ -110,6 +110,7 @@ Route::prefix('editor')->middleware('auth')->group(function(){
         Route::get('/inbound-request/data/total','countData')->name('editor.inbound-request.data.total');
         Route::post('/inbound-request/upload/stock','uploadDataStock')->name('editor.inbound-request.upload.stock');
         Route::post('/inbound-request/store','storeData')->name('editor.inbound-request.store');
+        Route::get('/inbound-request/download','downloadInbound')->name('editor.inbound-request.download');
     });
     Route::controller(UserWhAccessController::class)->group(function(){
         Route::get('/access-wh/data','getData')->name('editor.access-wh.data');

@@ -16,6 +16,7 @@ use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class InboundRequestController extends Controller
 {
@@ -282,5 +283,10 @@ class InboundRequestController extends Controller
             $res =['success'=>0,'messages'=>'terjadi kesalahan'];
         }
         return response()->json($res,$rescode);
+    }
+
+    public function downloadInbound(Request $request)
+    {
+        
     }
 }
