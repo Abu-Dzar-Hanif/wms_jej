@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\editor;
 
+use App\Models\DoDtl;
 use App\Models\SkuData;
 use Illuminate\View\View;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\InboundRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\InboundRequestDtl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use App\Models\DoDtl;
-use App\Models\InboundRequestDtl;
-use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
@@ -287,6 +288,28 @@ class InboundRequestController extends Controller
 
     public function downloadInbound(Request $request)
     {
-        
+        ini_set('max_execution_time',300);
+        $idIR = $request->input('id',0);
+        try {
+            $data = [];
+            $InboundRequest = InboundRequest::select('inbound_request.*','vendor.name as vendor_name')
+            ->leftjoin('vendor','inbound_request.vendor_id','=','vendor.id')
+            ->where('inbound_request.id',$idIR)
+            ->first();
+            $InboundRequest['qrid'] = base64_encode(QrCode::format('svg')->size(100)->errorCorrection('H')->generate($InboundRequest['id']));
+            $InboundRequestDtl = InboundRequestDtl::select('sku_data.sku_name','sku_data.sku_code','inbound_request_dtl.qty')
+            ->leftjoin('sku_data','inbound_request_dtl.sku_id','=','sku_data.id')
+            ->where('inbound_request_dtl.inbound_request_id',$idIR)
+            ->get();
+            $ird = $InboundRequestDtl->toArray();
+            $nama_file = 'INBOUND_'.$InboundRequest->po_number.'.pdf';
+            $pdf = Pdf::loadview('pages.editor.inbound_request.download_inbound',compact('InboundRequest','ird'));
+            $pdf->setPaper('A4','potrait');
+            return $pdf->stream($nama_file);
+        } catch (\Throwable $th) {
+            Log::error("error ".$th);
+            $res =['success'=>0,'messages'=>'terjadi kesalahan'];
+            return response()->json($res);
+        }
     }
 }
